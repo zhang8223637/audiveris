@@ -53,6 +53,9 @@ import java.util.Locale;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -327,6 +330,36 @@ public abstract class Preferences
 
             // Define localeBox
             localeBox = new JComboBox<>(locales.toArray(new Locale[locales.size()]));
+localeBox.setRenderer(new DefaultListCellRenderer()
+{
+    @Override
+    public java.awt.Component getListCellRendererComponent (JList<?> list,
+                                                           Object value,
+                                                           int index,
+                                                           boolean isSelected,
+                                                           boolean cellHasFocus)
+    {
+        java.awt.Component component = super.getListCellRendererComponent(
+                list,
+                value,
+                index,
+                isSelected,
+                cellHasFocus);
+
+        if (value instanceof Locale locale) {
+            String language = locale.getLanguage();
+            String text = switch (language) {
+                case "en" -> "English";
+                case "fr" -> "français";
+                case "zh" -> "中文";
+                default -> locale.getDisplayName(locale);
+            };
+            setText(text);
+        }
+
+        return component;
+    }
+});
             localeBox.addActionListener(this);
 
             // Layout
@@ -343,7 +376,15 @@ public abstract class Preferences
         public void actionPerformed (ActionEvent e)
         {
             final Locale locale = localeBox.getItemAt(localeBox.getSelectedIndex());
-            Main.setLocale(locale);
+final Locale current = Locale.getDefault();
+if (!current.equals(locale)) {
+    Main.setLocale(locale);
+    JOptionPane.showMessageDialog(
+            this,
+            resources.getString("LocalePane.restart.message"),
+            resources.getString("LocalePane.restart.title"),
+            JOptionPane.INFORMATION_MESSAGE);
+}
         }
     }
 
